@@ -21,10 +21,10 @@ Cload = 25e-15
 
 STTorPS = 0 # 0: STT, 1:Precessional Swiching
 
-pulse_start = 12
-pulse_end = 13
+pulse_start = 11
+pulse_end = 12
 pulse_step = 1
-sense_time = 1e-9
+sense_time = 0
 exist_results = list()
 finished_results = './finished_results.txt'
 if (not os.path.isfile(finished_results)):
@@ -33,18 +33,18 @@ if (not os.path.isfile(finished_results)):
 template_pulse_filename = './template_pulse.txt'
 pulse_filename = './var_input.txt'
 temperature = 300;
-V_p = -0.6
-V_ap = -0.6
+V_p = -0.8
+V_ap = -0.8
 sigma_V_p = 0 #0.0437
 sigma_V_ap = 0 #0.0257
 mean_tr = 0 #6.5e-11
 sigma_tr = 0 #15.5E-12
 mean_tf = 0 #6.57E-11
 
-if(mean_tf != 0 and ndr_mode !=1):
+if(mean_tr == 0 and ndr_mode !=1):
 	print "require rise time > 0"
 	quit()
-if(mean_tf == 0 and ndr_mode == 1):
+if(mean_tr != 0 and ndr_mode == 1):
 	print "ndr write require rise time == 0"
 	quit()
 sigma_tf = 0 #4.66E-12
@@ -53,7 +53,7 @@ if(initial_state):
 	voltage_start = V_p
 else:
 	voltage_start = V_ap
-voltage_end = -0.7
+voltage_end = -0.85
 voltage_step = -0.1
 
 
