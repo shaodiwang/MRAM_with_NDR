@@ -70,6 +70,19 @@ double	peak_voltage = Peak_voltage(VIGndr);
 double	peak_current = IG_V(peak_voltage,VIGndr,1);
 #endif
 
+/* -------------------------------------------
+ Constants
+ -------------------------------------------*/
+
+double hbar = 1.05457173e-34;                                      // Reduced Planck constant, [J*s]
+double k = 1.3806488e-23;                                          // Boltzmann constant, [J/K]
+double u0 = 4e-7*shaodi_pi;                                               // Vacuum permeability, [V�s/(A�m)]
+double q = 1.60217657e-19;                                         // Electron charge, [C]
+double alphac = 0.02;                                              // LLGE damping factor
+double gammap = (221276/(1+pow(alphac,2)));                             // Gyromagnetic ratio [m/(A x s)]
+double T0 = 1120;
+
+/******************simulation trials *************/
 for( int i_trial = 0; i_trial < trials_p_thread; i_trial++){
 
 length = ori_length; //length of MTJ
@@ -108,17 +121,6 @@ double Ext [3] = {0, 0, 0};                        // External magnetic field [A
 
 //double t_delay = 2e-9;                             // Time to initiate pulse application [s]
 
-/* -------------------------------------------
- Constants
- -------------------------------------------*/
-
-double hbar = 1.05457173e-34;                                      // Reduced Planck constant, [J*s]
-double k = 1.3806488e-23;                                          // Boltzmann constant, [J/K]
-double u0 = 4e-7*shaodi_pi;                                               // Vacuum permeability, [V�s/(A�m)]
-double q = 1.60217657e-19;                                         // Electron charge, [C]
-double alphac = 0.02;                                              // LLGE damping factor
-double gammap = (221276/(1+pow(alphac,2)));                             // Gyromagnetic ratio [m/(A x s)]
-double T0 = 1120;
 double Ms0 = 1393128.323;//origin:1.44e6;
 double Ms = Ms0 * ( 1 - pow(Temperature/T0,1.5));                  // Saturation magnetization [A/m] - 1e6 A/m = 1000 emu/cc 
 double dstray = 20e-9, tstray = 1.164656e-9;
