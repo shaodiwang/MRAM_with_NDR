@@ -1,0 +1,20 @@
+Start Demagnitization calculation
+real number of trials is: 104857600
+Start copy from host memory to GPU...
+read in V_I_G.
+read in V_I_G.
+Finish copy from host memory to GPU
+Start GPU calculation...
+Finish GPU calculation
+Start copy GPU to host memory...
+Average switching power is: 9.70077e-13
+Average switching time is: 1.55439e-09
+Average Vndr after switching is: -0.21969
+Finish copy GPU to host memory
+ Start couting final result...
+Finish couting final result
+Monte-Carlo Results for 1 to 0 :
+Pulse voltage: -0.6
+104857600 success of 104857600 trials, percentage:1
+Runtime summary:
+Start time: 1.46305955e+09s, end time: 1.46306201e+09 s, copy memory to GPU: 1.44518089 s, GPU calculation: 2461.99587 s, copy memory out to CPU: 1.03810406 s, couting switching: 0.35423708 s.

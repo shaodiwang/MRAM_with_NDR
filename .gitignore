@@ -1,0 +1,8 @@
+#exclude all files except *.py, *.cu, *.sh, *.csh
+*
+!*.py
+!*.cu
+!*.sh
+!*.csh
+!*Makefile*
+!*.template
