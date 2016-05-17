@@ -81,6 +81,12 @@ double q = 1.60217657e-19;                                         // Electron c
 double alphac = 0.02;                                              // LLGE damping factor
 double gammap = (221276/(1+pow(alphac,2)));                             // Gyromagnetic ratio [m/(A x s)]
 double T0 = 1120;
+double Ms0 = 1393128.323;//origin:1.44e6;
+double Ki0 =1.479036e-3;//origin:1.46e-3;
+double Xi0 = 0; //53.39247e-15; //origin:58.9e-15;
+if(isPS) Xi0 = 53.39247e-15;
+double P_tunnel = 0.2;                                  // the polarization of the tunnel currentdouble
+double Pol = 0.6;                                                  // Polarization for Spin Torque
 
 /******************simulation trials *************/
 for( int i_trial = 0; i_trial < trials_p_thread; i_trial++){
@@ -121,23 +127,16 @@ double Ext [3] = {0, 0, 0};                        // External magnetic field [A
 
 //double t_delay = 2e-9;                             // Time to initiate pulse application [s]
 
-double Ms0 = 1393128.323;//origin:1.44e6;
 double Ms = Ms0 * ( 1 - pow(Temperature/T0,1.5));                  // Saturation magnetization [A/m] - 1e6 A/m = 1000 emu/cc 
 double dstray = 20e-9, tstray = 1.164656e-9;
 //double Ext[3]	 = {-Ms*length*width/4/shaodi_pi*((dstray+tstray)/(pow(length/2,2)*sqrt(pow(length/2,2)+pow(dstray+tstray,2)))-(dstray-tstray)/(pow(length/2,2)*sqrt(pow(length/2,2)+pow(dstray-tstray,2)))),0,0};
-double Ki0 =1.479036e-3;//origin:1.46e-3;
 double Ki = Ki0 * pow(Ms/Ms0, 2.18);                          // Anisotropy field constant [J/m^2]
-double Xi0 = 0; //53.39247e-15; //origin:58.9e-15;
-if(isPS) Xi0 = 53.39247e-15;
 double Xi = Xi0* pow(Ms/Ms0, 2.83);                                // VCMA field constant [J/(V x m)]
 double Gt = 1/(Rp*(1+(TMR/(TMR+2))));                              // Direct elastic tunneling conductance [S]
 double KiPF = (2*Ki)/(tfl*u0*Ms);                                  // Prefactor for interface anisotropy effective field
 double VCMAPF = (2*Xi)/(u0*Ms*dMgO*tfl);                           // Prefactor for VCMA effective field
 double Gsi	= 0;                                                    // Conductance due to imperfections in Mgo [S]
 
-double P_tunnel = 0.2;                                  // the polarization of the tunnel currentdouble
-
-double Pol = 0.6;                                                  // Polarization for Spin Torque
 //double Jc0 = (2*Ms*tfl*q*u0)/(hbar*Pol);                           // Normalization Constant for Current Density
 
 double volume = areamtj*tfl;                                       // MTJ volume [m^3]
