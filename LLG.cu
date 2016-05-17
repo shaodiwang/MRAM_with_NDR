@@ -85,7 +85,7 @@ double Ki0 =1.479036e-3;//origin:1.46e-3;
 double Xi0 = 0; //53.39247e-15; //origin:58.9e-15;
 if(isPS) Xi0 = 53.39247e-15;
 double P_tunnel = 0.2;                                  // the polarization of the tunnel currentdouble
-double Pol = 0.6;                                                  // Polarization for Spin Torque
+double Pol = 1;                                                  // Polarization for Spin Torque
 
 /******************simulation trials *************/
 for( int i_trial = 0; i_trial < trials_p_thread; i_trial++){
