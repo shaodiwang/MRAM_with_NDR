@@ -485,8 +485,11 @@ for(int i=1;i<=n_sim;i++){
 	if(isNDR <=1){
 		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr;
 	}
-	else{
+	else if(isNDR == 2){
 		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr+Vmos+V;
+	}
+	else if (isNDR == 3){
+		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr;
 	}
 
 }
