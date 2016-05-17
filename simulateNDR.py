@@ -17,6 +17,7 @@ n_blocks = 128
 n_treads_p_block = 128
 initial_state = 1 # 1: ap2p, 0: p2ap
 ndr_mode = 1 #0: normal write, 1: ndr write, 2: normal read, 3: ndr read
+Cload = 25e-15
 
 STTorPS = 0 # 0: STT, 1:Precessional Swiching
 
@@ -90,7 +91,7 @@ for i_voltage in range(int( (voltage_end - voltage_start)/voltage_step) +1 ):
 		ind = exist_results.index("%.2f" % (ndr_width * 10000000 + pulse))
 		if ( float(exist_probability[ind]) > 1 - 100/float(trials) and float(trials) > exist_trials[ind] ):
 			print ( str(ndr_width) + ' ' + str(pulse) +' is updating')
-			cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' '+ str(STTorPS) + ' ' + ndr_file + ' v_i_mos.txt '+ str(ndr_mode) +' 2>&1 | tee sim.log'
+			cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' '+ str(STTorPS) + ' ' + ndr_file + ' v_i_mos.txt '+ str(ndr_mode) + ' '+ str(Cload) + ' 2>&1 | tee sim.log'
 			print(cmd)
 			os.system(cmd)
 			if(initial_state == 0):
@@ -128,7 +129,7 @@ for i_voltage in range(int( (voltage_end - voltage_start)/voltage_step) +1 ):
 		else:	
 			print ( str(ndr_width) + ' ' + str(pulse) +' '+ exist_probability[ind] +' in the '+ finished_results)
 	  else:
-		cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' ' + str(STTorPS) + ' ' + ndr_file+' v_i_mos.txt '+str(ndr_mode)+' 2>&1 | tee sim.log'
+		cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' ' + str(STTorPS) + ' ' + ndr_file+' v_i_mos.txt '+str(ndr_mode)+' ' + str(Cload)+ ' 2>&1 | tee sim.log'
 		print(cmd)
 		os.system(cmd)
 		if(initial_state == 0):
