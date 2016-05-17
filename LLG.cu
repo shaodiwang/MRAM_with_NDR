@@ -64,7 +64,6 @@ double mean_tr = g_v_para[6], sigma_tr = g_v_para[7], mean_tf = g_v_para[8], sig
 
 int n_sim = (pulse_width+delay_time + sense_time)/t_step ;//Simulation time
 
-//double initial_Vndr = 0;
 #ifdef OUTPUT_DETAIL
 double	peak_voltage = Peak_voltage(VIGndr); 
 double	peak_current = IG_V(peak_voltage,VIGndr,1);
