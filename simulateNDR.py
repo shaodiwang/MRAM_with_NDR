@@ -26,6 +26,9 @@ pulse_step = 1
 sense_time = 1e-9
 exist_results = list()
 finished_results = './finished_results.txt'
+if (not os.path.isfile(finished_results)):
+	fw = open(finished_results,'w')
+	fw.close()
 template_pulse_filename = './template_pulse.txt'
 pulse_filename = './var_input.txt'
 temperature = 300;
