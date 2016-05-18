@@ -21,7 +21,7 @@ os.chdir(base_dir)
 trials = int(args[3])
 n_blocks = 128
 n_treads_p_block = 128
-initial_state = 0 # 1: ap2p, 0: p2ap
+initial_state = 1 # 1: ap2p, 0: p2ap
 ndr_mode = 3 #0: 2: normal read, 3: ndr read
 
 STTorPS = 0 # 0: STT, 1:Precessional Swiching
@@ -33,6 +33,7 @@ exist_results = list()
 finished_results = './finished_results.txt'
 if (not os.path.isfile(finished_results)):
 	fw = open(finished_results,'w')
+	fw.write("ndr_width pulse_rise_time probability #_trials sensing_time Bitline_load Bitline_voltage std_Bitline_voltage\n")  
 	fw.close()
 template_pulse_filename = './template_pulse.txt'
 pulse_filename = './var_input.txt'
@@ -65,7 +66,8 @@ exist_trials = list()
 exist_sense_time = list()
 exist_cload = list()
 exist_Vbline = list()
-for line in content:
+exist_stdVndr = list()
+for line in content[1:]:
 	nums = line.split()
 	exist_voltage.append( nums[0])
 	exist_pulse.append(nums[1])
@@ -75,6 +77,7 @@ for line in content:
 	exist_sense_time.append( nums[4])
 	exist_cload.append( nums[5])
 	exist_Vbline.append(nums[6])
+	exist_stdVndr.append(nums[7])
 for line in read_config:
     parts = line.rstrip().split()
     voltage = float(parts[0])
@@ -108,17 +111,21 @@ for line in read_config:
 			fs = open('sim.log','r')
 			tempoutput = fs.readlines()
 			fs.close()
-			ave_sense_time = 0
-			ave_cload = 0
 			ave_endVndr = 0
+			std_Vndr = 0
 			for line in tempoutput:
 				if('Average Vndr after switching is' in line):
 					parts = line.rstrip().split()
 					ave_endVndr = parts[len(parts)-1]
+				if('Standard deviation of sensing margin is:' in line):
+					parts = line.rstrip().split()
+					std_Vndr = parts[len(parts)-1]
 			exist_Vbline[ind] = ave_endVndr
+			exist_stdVndr[ind] = std_Vndr
 			fw = open ( finished_results,'w')
+			fw.write("ndr_width pulse_rise_time probability #_trials sensing_time Bitline_load Bitline_voltage std_Bitline_voltage\n")
 			for i in range (len(exist_voltage)):
-				fw.write( exist_voltage[i] + ' ' + exist_pulse[i] + ' '+ exist_probability[i]+' '+str(exist_trials[i])+' ' + exist_sense_time[i]+' '+exist_cload[i]+' '+exist_Vbline[i]+'\n' )
+				fw.write( exist_voltage[i] + ' ' + exist_pulse[i] + ' '+ exist_probability[i]+' '+str(exist_trials[i])+' ' + exist_sense_time[i]+' '+exist_cload[i]+' '+exist_Vbline[i]+' '+exist_stdVndr[i]+'\n' )
 			fw.close()
 		else:	
 			print ( str(ndr_width) + ' ' + str(pulse) +' '+ exist_probability[ind] +' in the '+ finished_results)
@@ -138,13 +145,17 @@ for line in read_config:
 		tempoutput = fs.readlines()
 		fs.close()
 		ave_endVndr = '0'
+		std_Vndr = '0'
 		for line in tempoutput:
 			if('Average Vndr after switching is' in line):
 				parts = line.rstrip().split()
 				ave_endVndr = parts[len(parts)-1]
+			if('Standard deviation of sensing margin is:' in line):
+				parts = line.rstrip().split()
+				std_Vndr = parts[len(parts)-1]
 			
 		fw = open ( finished_results,'a')
-		fw.write( str(ndr_width) + ' ' + str(pulse) + ' '+ probability+' '+str(trials)+ ' ' + str(sense_time) + ' ' + str(cload) + ' ' +ave_endVndr+'\n' )
+		fw.write( str(ndr_width) + ' ' + str(pulse) + ' '+ probability+' '+str(trials)+ ' ' + str(sense_time) + ' ' + str(cload) + ' ' +ave_endVndr+' '+std_Vndr+'\n' )
 		fw.close()
 		exist_voltage.append( str(ndr_width))
 		exist_pulse.append(str(pulse))
