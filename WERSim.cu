@@ -286,14 +286,23 @@ int main(int argc, char* argv[])
 #endif
 	double total_energy = 0;
 	double total_switchingtime = 0;
-	double total_vndr = 0;
+	double ave_vndr = 0;
 	for(int i_e = 0; i_e < real_trials; i_e++){
 		total_energy += global_Energy[i_e];
 		total_switchingtime += global_SwitchingTime[i_e];
 	//	cout<<global_SwitchingTime[i_e]<<endl;
-		total_vndr += global_EndVndr[i_e];
+		ave_vndr += global_EndVndr[i_e]; // Sensed voltage
 	}
-	cout<<"Average switching power is: "<< total_energy/real_trials <<"\nAverage switching time is: "<<total_switchingtime/real_trials<<"\nAverage Vndr after switching is: "<<total_vndr/real_trials<<endl;
+	ave_vndr /= real_trials;
+	cout<<"Average switching power is: "<< total_energy/real_trials <<"\nAverage switching time is: "<<total_switchingtime/real_trials<<"\nAverage Vndr after switching is: "<<ave_vndr<<endl;
+	if(isNDR >=2){ // in read mode
+		double std_vndr = 0;
+		for( int i_trial = 0; i_trial < real_trials; i_trial++){
+			std_vndr += (global_EndVndr[i_trial] - ave_vndr)*(global_EndVndr[i_trial] - ave_vndr);
+		}
+		std_vndr = sqrt(std_vndr/real_trials);
+		cout<<"Standard deviation of sensing margin is: " << std_vndr<<endl;;
+	}
 
 //Edition for NDR ends here
 /***************************/
