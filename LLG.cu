@@ -119,12 +119,21 @@ double Rp = exp(dMgO * dMgO_b)*dMgO_a / (Area * 10e12);
 double Rap = (1+TMR)*Rp;                                           // Anti-parallel resistance [Ohms]
 double B1 = 0;//origin 0.2                                   // Field-like torque linear parameter [unitless]
 double B2 = 0;//origin 0.02;                                     // Field-like torque quadratic parameter [1/A]
+
+int sim_per_trial = 1;
+if(isNDR >=2){ // read mode, simulate the read margin by read both ap and p MTJ
+	sim_per_trial = 2;
+}
+for (int i_read = 0; i_read < sim_per_trial; i_read ++){
 int initial_state = initialstate;                          // Inital state [0 = parallel, 1 = anti-parallel]
+if ( i_read == 1){ // simulate read for the other state
+	initial_state = 1 - initial_state;
+}
+
 double P [3] = {0, 0, -1};                             // Direction of polarization
 double Ext [3] = {0, 0, 0};                        // External magnetic field [A/m] - 1 oersted [Oe] = 79.5774715459424 ampere/meter [A/m]
 
 
-//double t_delay = 2e-9;                             // Time to initiate pulse application [s]
 
 double Ms = Ms0 * ( 1 - pow(Temperature/T0,1.5));                  // Saturation magnetization [A/m] - 1e6 A/m = 1000 emu/cc 
 double dstray = 20e-9, tstray = 1.164656e-9;
@@ -140,7 +149,6 @@ double Gsi	= 0;                                                    // Conductanc
 
 double volume = areamtj*tfl;                                       // MTJ volume [m^3]
 double Hth = sqrt((2*k*Temperature*alphac)/(u0*gammap*Ms*volume*t_step));    // Amplitude of Thermal Field
-//int this_id = (blockIdx.x * blockDim.x + threadIdx.x) * trials_p_thread + i_trial;
 
 /* -------------------------------------------
  Internal Variables
@@ -188,7 +196,7 @@ double J = 0;                                          // Current density [A/m^2
 double V = 0;                                          // MTJ Voltage [V]
 
  
-double V_offset = 0;//1e-10 * (this_id * trials_p_thread+i_trial);
+double V_offset = 0;
 
 /*********** edition for NDR starts here ***********/
 //The parameters for calculating NDR
@@ -210,7 +218,6 @@ V = 0; // mtj voltage
 	g_initialR [this_id*trials_p_thread + i_trial] = R;
 #endif
 if(isNDR == 1){ //NDR write
-	//Vndr = initial_Vndr;
 	Vndr = Solve_stable_vndr(VIGndr, VIGmos, R, V_ap);
 	Indr = IG_V(Vndr, VIGndr,1);
 	Imtj = Indr;
@@ -463,7 +470,7 @@ for(int i=1;i<=n_sim;i++){
 
 
 }
-   	if( initial_state ==0){
+	if( initial_state ==0){
    		if( R >= Rp*(1+TMR/2)){
    			writeSuccess[this_id*trials_p_thread + i_trial]=1;
    		}
@@ -486,14 +493,35 @@ for(int i=1;i<=n_sim;i++){
 		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr;
 	}
 	else if(isNDR == 2){
-		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr+Vmos+V;
+		if(i_read == 1){
+			if(initial_state == 1){
+				g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr+Vmos+V -g_EndVndr[this_id * trials_p_thread+i_trial];
+			}
+			else{
+				g_EndVndr[this_id * trials_p_thread+i_trial] -= Vndr+Vmos+V;
+			}
+		}
+		else{
+			g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr+Vmos+V;
+		}
 	}
 	else if (isNDR == 3){
-		g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr;
+		if(i_read == 1){
+			if(initial_state == 0){
+				g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr - g_EndVndr[this_id * trials_p_thread+i_trial];
+			}
+			else{
+				g_EndVndr[this_id * trials_p_thread+i_trial] -= Vndr;
+			}
+		}
+		else{
+			g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr;
+		}
 	}
-
-}
+	
+}// end for i_read for
+}// end i_trial for
                   
-}
+}//end function
 
 

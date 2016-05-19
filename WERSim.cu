@@ -163,16 +163,14 @@ int main(int argc, char* argv[])
 	vector<double>().swap(v_par);
 	
 	double t_step = 3e-12;                             // Time step [s]
-//	double t_sim = t_pulse+6e-9;                              // Total simulation time [s]
 	
 	int trials = atoi(argv[1]);
-//	int n_sim = ceil(t_sim/t_step);
 	int GridSize = atoi(argv[2]);
 	int GridLength = sqrt(GridSize);
 	int BlockSize = atoi(argv[3]);
-	bool isPS=true; // is it precessional switching or STT
+	bool enableVCMA=true; // is it precessional switching or STT
 	if ( atoi(argv[6]) == 0){
-		 isPS = false;
+		 enableVCMA = false;
 	}
 	
 	int BlockLength = sqrt(BlockSize);
@@ -256,22 +254,23 @@ int main(int argc, char* argv[])
 /***************************************/
 
 	double copyin_t = get_wall_time();
-	cout<<"Finish copy from host memory to GPU\n"<<"Start GPU calculation..."<<endl;
+	cout<<"Start GPU calculation..."<<endl;
 #ifdef OUTPUT_DETAIL
-   	LLG<<<dimGrid,dimBlock>>>(g_v_para, g_writeSuccess, initial_state, t_step, trials_p_thread, isPS, length, sigma_l,  width, sigma_w, tfl, sigma_tfl, sigma_mgo, Nx, Ny, Nz, g_lin_dep_factor,isNDR,g_VIGndr,g_VIGmos,  g_Energy, g_SwitchingTime, g_EndVndr, Cload, g_NDRturnR, g_initialR,g_NDRoffR);
+   	LLG<<<dimGrid,dimBlock>>>(g_v_para, g_writeSuccess, initial_state, t_step, trials_p_thread, enableVCMA, length, sigma_l,  width, sigma_w, tfl, sigma_tfl, sigma_mgo, Nx, Ny, Nz, g_lin_dep_factor,isNDR,g_VIGndr,g_VIGmos,  g_Energy, g_SwitchingTime, g_EndVndr, Cload, g_NDRturnR, g_initialR,g_NDRoffR);
 #endif
 #ifndef OUTPUT_DETAIL
-   	LLG<<<dimGrid,dimBlock>>>(g_v_para, g_writeSuccess, initial_state, t_step, trials_p_thread, isPS, length, sigma_l,  width, sigma_w, tfl, sigma_tfl, sigma_mgo, Nx, Ny, Nz, g_lin_dep_factor,isNDR,g_VIGndr,g_VIGmos,  g_Energy, g_SwitchingTime, g_EndVndr,Cload);
+   	LLG<<<dimGrid,dimBlock>>>(g_v_para, g_writeSuccess, initial_state, t_step, trials_p_thread, enableVCMA, length, sigma_l,  width, sigma_w, tfl, sigma_tfl, sigma_mgo, Nx, Ny, Nz, g_lin_dep_factor,isNDR,g_VIGndr,g_VIGmos,  g_Energy, g_SwitchingTime, g_EndVndr,Cload);
 #endif
 	cudaDeviceSynchronize();
 	double calculate_t = get_wall_time();
-	cout<<"Finish GPU calculation\n"<<"Start copy GPU to host memory..."<<endl;
+	cout<<"Start copy GPU to host memory..."<<endl;
 	copyout_gmemptr_1D(global_writeSuccess, g_writeSuccess, real_trials);
 /****************************/
 //Edition for NDR starts here
 	copyout_gmemptr_1D(global_Energy, g_Energy, real_trials);
 	copyout_gmemptr_1D(global_SwitchingTime, g_SwitchingTime, real_trials);
 	copyout_gmemptr_1D(global_EndVndr, g_EndVndr, real_trials);
+	cout<<"Start couting final result...\n**********************"<<endl;
 #ifdef OUTPUT_DETAIL
 	copyout_gmemptr_1D(global_NDRturnR, g_NDRturnR, real_trials);
 	copyout_gmemptr_1D(global_initialR, g_initialR, real_trials);
@@ -279,7 +278,7 @@ int main(int argc, char* argv[])
 	fstream fout;
 	fout.open("output_detailR.txt",std::fstream::out);
 	for (int i_trial = 0; i_trial<real_trials ; i_trial++){
-		fout << "switched/R_initial/R_NDRturn/R_NDRoff\t"<<global_writeSuccess[i_trial]<<"\t"<<global_initialR[i_trial]<<"\t"<<global_NDRturnR[i_trial]<<"\t"<<global_NDRoffR[i_trial]<<std::endl;
+		fout << "switched/R_initial/NDRturn/NDRoff\t"<<global_writeSuccess[i_trial]<<"\t"<<global_initialR[i_trial]<<"\t"<<global_NDRturnR[i_trial]<<"\t"<<global_NDRoffR[i_trial]<<std::endl;
 	}
 	fout.close();
 	
@@ -287,38 +286,49 @@ int main(int argc, char* argv[])
 	double total_energy = 0;
 	double total_switchingtime = 0;
 	double ave_vndr = 0;
+	int read_failures = 0;
+	double min_margin = 0;
+	if(n_par > 12) {
+		min_margin = v_para[12];
+	}
 	for(int i_e = 0; i_e < real_trials; i_e++){
 		total_energy += global_Energy[i_e];
 		total_switchingtime += global_SwitchingTime[i_e];
-	//	cout<<global_SwitchingTime[i_e]<<endl;
 		ave_vndr += global_EndVndr[i_e]; // Sensed voltage
+		read_failures += (global_EndVndr[i_e] > min_margin)? 0:1;
 	}
 	ave_vndr /= real_trials;
-	cout<<"Average switching power is: "<< total_energy/real_trials <<"\nAverage switching time is: "<<total_switchingtime/real_trials<<"\nAverage Vndr after switching is: "<<ave_vndr<<endl;
 	if(isNDR >=2){ // in read mode
+		cout<<"Results of read mode ("<<isNDR<<")"<<endl;
 		double std_vndr = 0;
 		for( int i_trial = 0; i_trial < real_trials; i_trial++){
 			std_vndr += (global_EndVndr[i_trial] - ave_vndr)*(global_EndVndr[i_trial] - ave_vndr);
 		}
 		std_vndr = sqrt(std_vndr/real_trials);
-		cout<<"Standard deviation of sensing margin is: " << std_vndr<<endl;;
+		cout<<"  Average sensing margin is: "<<ave_vndr<<endl;
+		cout<<"  Standard deviation of sensing margin is: " << std_vndr<<endl;
+		cout<<"  Number of read failures (< minimum margin of "<<min_margin<<"): "<<read_failures<<endl;
+	}else{
+		cout<<"Results of write mode ("<<isNDR<<")"<<endl;
+		cout<<"  Average switching power is: "<< total_energy/real_trials <<"\nAverage switching time is: "<<total_switchingtime/real_trials<<endl;
+		cout<<"  Average Vndr after switching is: "<<ave_vndr<<endl;
 	}
 
 //Edition for NDR ends here
 /***************************/
 	double copyout_t = get_wall_time();
-	cout<<"Finish copy GPU to host memory\n Start couting final result..."<<endl;
 
 	int sum=0;
    	for( int i =0 ; i< real_trials; i++){
    		sum+= global_writeSuccess[i];
    	}
 	double couting_t = get_wall_time();
-	cout<<"Finish couting final result"<<endl;
-   	cout << "Monte-Carlo Results for "<<initial_state<<" to "<< (initial_state == 0)<<" :\n"<<"Pulse voltage: "<<voltage
-//	<<"\nGrid size: "<<GridLength<<"x"<<GridLength<<" , Block size: "<<BlockLength<<"x"<<BlockLength<<" , total number of trials: "<<real_trials
-   	<<"\n"<<sum<<" success of "<<real_trials<<" trials, percentage:"<<std::setprecision(9)<<(double(sum) / double(real_trials)) << endl;
-	cout<<"Runtime summary:\n"<<"Start time: "<<start_t<<"s, end time: "<<couting_t<<" s, copy memory to GPU: "<<copyin_t - start_t<<" s, GPU calculation: "<<calculate_t - copyin_t<<" s, copy memory out to CPU: "<<copyout_t - calculate_t <<" s, couting switching: "<< couting_t - copyout_t <<" s."<<endl;
+	cout << "**********************\nMonte-Carlo Simulation Results:\n  switching from "<< ((initial_state==0)? "P" : "AP")<<" to "<< ((initial_state==1)? "P" : "AP")<<"\n"
+	<<"  Pulse voltage: "<<voltage<<" V, time step: "<<t_step<<"s\n  "
+        <<sum<<" trials success out of total "<<real_trials<<" trials, switching rate: "<<std::setprecision(9)<<(double(sum) / double(real_trials)) << endl;
+	cout<<"**********************\nRuntime summary:\n"<<" copy memory to GPU: "<<copyin_t - start_t
+<<" s, GPU calculation: "<<calculate_t - copyin_t<<" s, copy memory out to CPU: "
+<<copyout_t - calculate_t <<" s, couting switching: "<< couting_t - copyout_t <<" s."<<endl;
 	fs << voltage <<" "<<t_pulse<<" "<<std::setprecision(9)<<(double(sum) / double(real_trials))<<" "<<couting_t-start_t<<" s"<<endl;
 	fs.close();
 	return 0;
