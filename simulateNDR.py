@@ -8,7 +8,7 @@ import sys
 #usage python this [ndr_File] [trials]
 args = sys.argv
 ndr_file = args[1]
-tempchar = ndr_file.split('u.txt')[0].split('_')
+tempchar = ndr_file.replace('u','').split('.txt')[0].split('_')
 ndr_width = float(tempchar[len(tempchar)-1])
 base_dir = './'
 os.chdir(base_dir)
