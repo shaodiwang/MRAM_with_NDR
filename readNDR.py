@@ -11,7 +11,7 @@ if(len(args)<4):
 	print "usage: $python $0 [VI of ndr] [read_config] [# of trials]"
 	quit()
 ndr_file = args[1]
-tempchar = ndr_file.split('u.txt')[0].split('_')
+tempchar = ndr_file.replace('u','').split('.txt')[0].split('_')
 ndr_width = float(tempchar[len(tempchar)-1])
 fr = open(args[2],'r')
 read_config = fr.readlines()
