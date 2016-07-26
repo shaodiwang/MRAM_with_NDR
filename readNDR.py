@@ -59,6 +59,9 @@ voltage_step = -0.1
 fs = open (finished_results,'r')
 content = fs.readlines()
 fs.close()
+if(len(content)<1):
+	fw.write("ndr_width pulse_rise_time probability #_trials sensing_time Bitline_load Bitline_voltage std_Bitline_voltage\n")
+	
 exist_voltage= list()
 exist_pulse = list()
 exist_probability = list()
@@ -84,7 +87,7 @@ for line in read_config:
     cload = float(parts[2])
     sense_time = float(parts[1])
     if(ndr_mode == 3): #ndr read
-		mean_tr = cload/20e-15 * 1e-9
+		mean_tr = cload/20e-15 * 0.1e-9
     if(ndr_mode == 2): #normal read
 		mean_tr = cload/20e-15 * 0.1e-9
     for i_pulse in range( int( (pulse_end - pulse_start)/pulse_step) +1):
@@ -111,10 +114,10 @@ for line in read_config:
 			fs = open('sim.log','r')
 			tempoutput = fs.readlines()
 			fs.close()
-			ave_endVndr = 0
-			std_Vndr = 0
+			ave_endVndr = '-1'
+			std_Vndr = '-1'
 			for line in tempoutput:
-				if('Average Vndr after switching is' in line):
+				if('Average sensing margin is' in line):
 					parts = line.rstrip().split()
 					ave_endVndr = parts[len(parts)-1]
 				if('Standard deviation of sensing margin is:' in line):
@@ -144,10 +147,10 @@ for line in read_config:
 		fs = open('sim.log','r')
 		tempoutput = fs.readlines()
 		fs.close()
-		ave_endVndr = '0'
-		std_Vndr = '0'
+		ave_endVndr = '-1'
+		std_Vndr = '-1'
 		for line in tempoutput:
-			if('Average Vndr after switching is' in line):
+			if('Average sensing margin is' in line):
 				parts = line.rstrip().split()
 				ave_endVndr = parts[len(parts)-1]
 			if('Standard deviation of sensing margin is:' in line):
