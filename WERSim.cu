@@ -111,17 +111,17 @@ void copyout_gmemptr_2D(double **f, double **g_f, size_t &pitch, int row, int co
 int main(int argc, char* argv[])
 {
 	if(argc < 11) {
-		cout<<" arguments: [trials] [number of blocks (32n)] [number of threads in block (32m)]  [initial state 0 = parallel, 1 = anti-parallel] [input pulse shape file] [enable VCMA?, 1:enable, 0: disable] [v_i characteristics of NDR] [v_i characteristics of MOS] [ndr write/read? 0: ndr write without ndr, 1: ndr write, 2: normal read without ndr, 3: ndr read; rise time is required except option 1] [Cbitline]"<<endl;
+		cout<<" arguments: [trials] [number of blocks (32n)] [number of threads in block (32m)]  [initial state 1 = parallel, 0 = anti-parallel] [input pulse shape file] [enable VCMA?, 1:enable, 0: disable] [v_i characteristics of NDR] [v_i characteristics of MOS] [ndr write/read? 0: ndr write without ndr, 1: ndr write, 2: normal read without ndr, 3: ndr read; rise time is required except option 1] [Cbitline]"<<endl;
 	return 1;
 	}
 	//dimention 
-        double length = 50e-9;                            // MTJ length [m]
-	double width = 50e-9;                            // MTJ width [m]
-	double tfl = 1.18e-9;//origin:1.1e-9                               // Free layer thickness [m]
+        double length = 60e-9;                            // MTJ length [m]
+	double width = 60e-9;                            // MTJ width [m]
+	double tfl = 1.16e-9;//origin:1.1e-9                               // Free layer thickness [m]
 	double sigma_l = 1e-9;
 	double sigma_w = 1e-9;
-	double sigma_tfl = 0.003e-9;
-	double sigma_mgo = 0.003e-9;
+	double sigma_tfl = 0.002e-9;
+	double sigma_mgo = 0.002e-9;
 	double* lin_dep_factor = new double[9];
 	double Cload = atof(argv[10]);
 	//Demagnetization calculation
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 	dim3 dimBlock(BlockSize, 1);
 	dim3 dimGrid(GridSize,1);
 	int initial_state = atoi(argv[4]);
-	if( initial_state == 1){
+	if( initial_state == 0){
 		fs.open("ap2p.txt",std::fstream::out | std::fstream::app);
 	}
 	else{
@@ -323,7 +323,7 @@ int main(int argc, char* argv[])
    		sum+= global_writeSuccess[i];
    	}
 	double couting_t = get_wall_time();
-	cout << "**********************\nMonte-Carlo Simulation Results:\n  switching from "<< ((initial_state==0)? "P" : "AP")<<" to "<< ((initial_state==1)? "P" : "AP")<<"\n"
+	cout << "**********************\nMonte-Carlo Simulation Results:\n  switching from "<< ((initial_state==0)? "AP" : "P")<<" to "<< ((initial_state==1)? "P" : "AP")<<"\n"
 	<<"  Pulse voltage: "<<voltage<<" V, time step: "<<t_step<<"s\n  "
         <<sum<<" trials success out of total "<<real_trials<<" trials, switching rate: "<<std::setprecision(9)<<(double(sum) / double(real_trials)) << endl;
 	cout<<"**********************\nRuntime summary:\n"<<" copy memory to GPU: "<<copyin_t - start_t

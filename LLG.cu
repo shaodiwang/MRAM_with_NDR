@@ -47,7 +47,7 @@ double Nz = ori_Nz;                                                // z Demagnet
 //Parameter calculation
 double length = ori_length; //length of MTJ
 double width = ori_width; //width of MTJ
-double Rp0 = 2e3;
+double Rp0 = 20e3;
 double dMgO_a = 1.54e-3, dMgO_b = 1.1537278e10;//origin:9.24e9;
 double Area = shaodi_pi*length*width/4;            // Area without variation
 double dMgO_base = (log(Rp0 * Area * 10e12) - log(dMgO_a)) / dMgO_b;     // MgO thickness [m]
@@ -62,7 +62,7 @@ if( sigma_V_p == 0){
 }
 double mean_tr = g_v_para[6], sigma_tr = g_v_para[7], mean_tf = g_v_para[8], sigma_tf= g_v_para[9], delay_time = 0e-9, sense_time = g_v_para[10]; 
 
-int n_sim = (pulse_width+delay_time + sense_time)/t_step ;//Simulation time
+int n_sim = 1+(pulse_width+delay_time + sense_time)/t_step ;//Simulation time
 
 #ifdef OUTPUT_DETAIL
 double	peak_voltage = Peak_voltage(VIGndr); 
@@ -83,9 +83,9 @@ double T0 = 1120;
 double Ms0 = 1393128.323;//origin:1.44e6;
 double Ki0 =1.479036e-3;//origin:1.46e-3;
 double Xi0 = 0; //53.39247e-15; //origin:58.9e-15;
-if(isPS) Xi0 = 53.39247e-15;
-double P_tunnel = 0.2;                                  // the polarization of the tunnel currentdouble
-double Pol = 1;                                                  // Polarization for Spin Torque
+if(isPS) Xi0 = 152.66e-15;
+double P_tunnel = 0;                                  // the polarization of the tunnel currentdouble
+double Pol = 0;                                                  // Polarization for Spin Torque
 
 /******************simulation trials *************/
 for( int i_trial = 0; i_trial < trials_p_thread; i_trial++){
@@ -131,7 +131,7 @@ if ( i_read == 1){ // simulate read for the other state
 }
 
 double P [3] = {0, 0, -1};                             // Direction of polarization
-double Ext [3] = {0, 0, 0};                        // External magnetic field [A/m] - 1 oersted [Oe] = 79.5774715459424 ampere/meter [A/m]
+double Ext [3] = {-11000, 0, 0};                        // External magnetic field [A/m] - 1 oersted [Oe] = 79.5774715459424 ampere/meter [A/m]
 
 
 
@@ -186,7 +186,7 @@ double FLT  = 0;                                        // Strenght of FLT term
 // -------------------------------------------
 double m [3] = {0, 0, 1};                             // Normalized mangetization
 double R  = Rap;                						// MTJ resistance [Ohms]
-if(initial_state != 1){
+if(initial_state == 1){
                        
     R  = Rp;                                    // MTJ resistance [Ohms]
     m[2]  = -1;                             // Normalized mangetization
@@ -238,7 +238,7 @@ for(int i=1;i<=n_sim;i++){
     // Update voltage/current density
     double V_ub = V_ap + V_offset;
 #ifdef VARIATION
-    V_ub += v_variation * ( 1 + (sigma_V_ap/sigma_V_p - 1) * (R - Rp0)/(Rap0 - Rp0) ) ;
+    V_ub = V_ap + V_offset + v_variation * ( 1 + (sigma_V_ap/sigma_V_p - 1) * (R - Rp0)/(Rap0 - Rp0) ) ;
 #endif
     double curr_time = i * t_step;
     if(curr_time < delay_time || curr_time > delay_time + pulse_width){
@@ -263,7 +263,16 @@ for(int i=1;i<=n_sim;i++){
 /*********** edition for NDR starts here ***********/
 
 #ifdef OUTPUT_DETAIL
-    if(isNDR==1){
+    if(isNDR==0){
+	if (!isNDRoff && curr_time >= delay_time + pulse_width+sense_time){
+                isNDRoff = true;
+		g_NDRoff [this_id*trials_p_thread + i_trial] = R;
+	}
+	if (!isNDRturn && curr_time >= delay_time + pulse_width/2){
+                isNDRturn = true;
+                g_NDRturn [this_id*trials_p_thread + i_trial] = VCMAPF;
+        }
+    }else if(isNDR==1){
 	if( !isNDRturn && abs(Vndr) > abs(peak_voltage)){
 		g_NDRturn [this_id*trials_p_thread + i_trial] = R;
 		isNDRturn = true;
@@ -351,7 +360,7 @@ for(int i=1;i<=n_sim;i++){
 //    }
 //Test whether switched
     if(!isSwitched){
-	if( (initial_state ==0 && R >= Rp*(1+TMR/2)) || ( initial_state ==1 && R <= Rp*(1+TMR/2)) ){
+	if( (initial_state ==1 && R >= Rp*(1+TMR/2)) || ( initial_state ==0 && R <= Rp*(1+TMR/2)) ){
 	    isSwitched = true;
 	    g_SwitchingTime[this_id * trials_p_thread+i_trial] = curr_time;
 	}
@@ -470,7 +479,7 @@ for(int i=1;i<=n_sim;i++){
 
 
 }
-	if( initial_state ==0){
+	if( initial_state ==1){
    		if( R >= Rp*(1+TMR/2)){
    			writeSuccess[this_id*trials_p_thread + i_trial]=1;
    		}
@@ -494,7 +503,7 @@ for(int i=1;i<=n_sim;i++){
 	}
 	else if(isNDR == 2){
 		if(i_read == 1){
-			if(initial_state == 1){
+			if(initial_state == 0){
 				g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr+Vmos+V -g_EndVndr[this_id * trials_p_thread+i_trial];
 			}
 			else{
@@ -507,7 +516,7 @@ for(int i=1;i<=n_sim;i++){
 	}
 	else if (isNDR == 3){
 		if(i_read == 1){
-			if(initial_state == 0){
+			if(initial_state == 1){
 				g_EndVndr[this_id * trials_p_thread+i_trial] = Vndr - g_EndVndr[this_id * trials_p_thread+i_trial];
 			}
 			else{
