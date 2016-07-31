@@ -15,14 +15,14 @@ os.chdir(base_dir)
 trials = int(args[2])
 n_blocks = 128
 n_treads_p_block = 128
-initial_state = 1 # 1: ap2p, 0: p2ap
+initial_state = 0 # 0: ap2p, 1: p2ap
 ndr_mode = 1 #0: normal write, 1: ndr write, 2: normal read, 3: ndr read
-Cload = 25e-15
+Cload = 5e-15
 
-STTorPS = 0 # 0: STT, 1:Precessional Swiching
+STTorPS = 1 # 0: STT, 1:Precessional Swiching
 
-pulse_start = 11
-pulse_end = 12
+pulse_start = 5
+pulse_end = 5.1
 pulse_step = 1
 sense_time = 0
 exist_results = list()
@@ -33,8 +33,8 @@ if (not os.path.isfile(finished_results)):
 template_pulse_filename = './template_pulse.txt'
 pulse_filename = './var_input.txt'
 temperature = 300;
-V_p = -0.8
-V_ap = -0.8
+V_p = 1.5
+V_ap = 1.5
 sigma_V_p = 0 #0.0437
 sigma_V_ap = 0 #0.0257
 mean_tr = 0 #6.5e-11
@@ -53,8 +53,8 @@ if(initial_state):
 	voltage_start = V_p
 else:
 	voltage_start = V_ap
-voltage_end = -0.85
-voltage_step = -0.1
+voltage_end = 1.51
+voltage_step = 1
 
 
 
@@ -94,7 +94,7 @@ for i_voltage in range(int( (voltage_end - voltage_start)/voltage_step) +1 ):
 			cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' '+ str(STTorPS) + ' ' + ndr_file + ' v_i_mos.txt '+ str(ndr_mode) + ' '+ str(Cload) + ' 2>&1 | tee sim.log'
 			print(cmd)
 			os.system(cmd)
-			if(initial_state == 0):
+			if(initial_state == 1):
 				fs = open ('p2ap.txt','r')
 			else:
 				fs = open ('ap2p.txt','r')
@@ -132,7 +132,7 @@ for i_voltage in range(int( (voltage_end - voltage_start)/voltage_step) +1 ):
 		cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' ' + str(STTorPS) + ' ' + ndr_file+' v_i_mos.txt '+str(ndr_mode)+' ' + str(Cload)+ ' 2>&1 | tee sim.log'
 		print(cmd)
 		os.system(cmd)
-		if(initial_state == 0):
+		if(initial_state == 1):
 			fs = open ('p2ap.txt','r')
 		else:
 			fs = open ('ap2p.txt','r')

@@ -21,7 +21,7 @@ os.chdir(base_dir)
 trials = int(args[3])
 n_blocks = 128
 n_treads_p_block = 128
-initial_state = 1 # 1: ap2p, 0: p2ap
+initial_state = 0 # 0: ap2p, 1: p2ap
 ndr_mode = 3 #0: 2: normal read, 3: ndr read
 
 STTorPS = 0 # 0: STT, 1:Precessional Swiching
@@ -47,7 +47,7 @@ sigma_tr = 0 #15.5E-12
 mean_tf = 0 #6.57E-11
 sigma_tf = 0 #4.66E-12
 #the voltage sweep function is unabled 
-if(initial_state):
+if(initial_state==1):
 	voltage_start = V_p
 else:
 	voltage_start = V_ap
@@ -102,7 +102,7 @@ for line in read_config:
 			cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' '+ str(STTorPS) + ' ' + ndr_file + ' v_i_mos.txt '+ str(ndr_mode) + ' ' + str(cload) + ' 2>&1 | tee sim.log'
 			print(cmd)
 			os.system(cmd)
-			if(initial_state == 0):
+			if(initial_state == 1):
 				fs = open ('p2ap.txt','r')
 			else:
 				fs = open ('ap2p.txt','r')
@@ -136,7 +136,7 @@ for line in read_config:
 		cmd = './WERSim '+ str(trials) + ' ' + str(n_blocks) + ' ' + str(n_treads_p_block) + ' ' + str(initial_state) + ' '+pulse_filename + ' ' + str(STTorPS) + ' ' + ndr_file+' v_i_mos.txt '+str(ndr_mode)+ ' ' + str(cload) + ' 2>&1 | tee sim.log'
 		print(cmd)
 		os.system(cmd)
-		if(initial_state == 0):
+		if(initial_state == 1):
 			fs = open ('p2ap.txt','r')
 		else:
 			fs = open ('ap2p.txt','r')
